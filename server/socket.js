@@ -1,7 +1,7 @@
 var socket_io = require('socket.io'),
-				http = require('http'),
-				fs = require('fs'),
-				html_data;
+	http = require('http'),
+	fs = require('fs'),
+	html_data;
 // read in the html data to serve 
 fs.readFile('index.html', function(err, data) {
 	if(err) throw err;
