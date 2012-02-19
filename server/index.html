@@ -12,6 +12,8 @@
 				e.preventDefault();
 				socket.emit('message', $('#message_textbox').val(), function(data) {
 					$('#ack').text(data).effect('highlight');
+					$('#new_message #message_textbox').val('');
+					$('#new_message #message_textbox').focus();
 					setTimeout(function() {
 						$('#ack').fadeOut();
 					}, 2000);

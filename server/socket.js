@@ -1,14 +1,19 @@
 var socket_io = require('socket.io'),
 	http = require('http'),
-	redis = require('redis'),
 	fs = require('fs'),
+	redis = require('./storage'),
 	html_data;
-// create a redis client for both pub and sub
-var create_client = redis.createClient();
-var pub_client = redis.createClient();
-var sub_client = redis.createClient();
 var clients = [];
-// read in the html data to serve 
+
+
+function broadcast(clients, message) {
+	for(var i = 0; i < clients.length; i++) 
+		clients[i].emit('new_message', message);						
+}
+// set up the redis client (first parameter is a callback for whenever there is a new message available)
+redis.createClient(broadcast, clients)
+
+// read in the html data to serve å
 fs.readFile('index.html', function(err, data) {
 	if(err) throw err;
 	html_data = data;
@@ -33,40 +38,13 @@ var io = socket_io.listen(server);
 io.sockets.on('connection', function(socket) {
 	clients.push(socket);
 	console.log("Client connected");
-	sub_client.subscribe('room-1');	
+	redis.subscribe('chat:room-1')
 	socket.on('message', function(data, fn) {
 		fn("\"" + data + "\"" + " received");
-		new_message(socket, data);
+		redis.new_message(socket, data);
 	
 	});
 });
 
-pub_client.on('error', function(err) {
-	console.log("Error: " + err);
-});
-sub_client.on('error', function(err) {
-	console.log("Error: " + err);
-});
-sub_client.on('message', function(channel, key) {
-	create_client.hgetall(key, function(err, obj) {
-		if(err) msg = "Error!"
-		var msg = obj.user_id + ": " + obj.msg;
-		broadcast(clients, msg);				
-	});
-		// send the message through every socket
-	
-});
-function new_message(sock, message) {
-	create_client.incr('messages', function(obj, id) {
-		create_client.hmset('message:'+id, {user_id: sock.id, msg: message}, function(obj, res) {
-			pub_client.publish('room-1', 'message:'+id);
-		});
-	});
-}
-function broadcast(clients, message) {
-	for(var i = 0; i < clients.length; i++) {
-		// send the message through every socket
-		clients[i].emit('new_message', message);					
-	}
-	
-}
+
+
