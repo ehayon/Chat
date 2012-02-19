@@ -1,16 +1,40 @@
 <html>
 	<head>
 		<title>Chat client</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
 		<script>
-		  var socket = io.connect('http://localhost:8000');
-		  socket.on('news', function (data) {
-		    console.log(data);
-		    socket.emit('my other event', { my: 'data' });
-		  });
+		$(document).ready(function() {
+			var socket = io.connect('http://localhost:8000');
+			socket.on('news', function (data) {
+				console.log(data);
+				socket.emit('my other event', { my: 'data' });
+			});
+			$('#ack').hide();
+			$('#new_message').submit(function(e) {
+				e.preventDefault();
+				socket.emit('message', 'test-message', function(data) {
+					$('#ack').effect('highlight');
+					setTimeout(function() {
+						$('#ack').fadeOut();
+					}, 2000);
+				});
+			});
+				
+			
+		});
 		</script>
 	</head>
 	<body>
 		<h1>Welome to the chat client</h1>
+		<div id="messages">
+		</div>
+		<div id="form">
+			<form action="#" method="POST" id="new_message">
+				<input type="text" name="message_textbox" id="message_textbox" />
+				<input type="submit" name="submit" value="submit" />
+			</form>
+			<span id="ack">Message received!</span>
 	</body>
 </html>

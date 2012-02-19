@@ -18,4 +18,7 @@ console.log("Server running on 127.0.0.1:8000");
 var io = socket_io.listen(server);
 io.sockets.on('connection', function(socket) {
 	console.log("Client connected");
+	socket.on('message', function(data, fn) {
+		fn("it works");
+	});
 });
