@@ -20,9 +20,14 @@ var server = http.createServer(function(request, response) {
 	// serve the client
 	response.end(html_data);
 });
-server.listen(8000);
 
-console.log("Server running on 127.0.0.1:8000");
+var port = process.argv[2];
+if(port == null) throw new Error("Please enter a port to run the http server on")
+
+// start the server
+server.listen(port);
+
+console.log("Server running on 127.0.0.1:" + port);
 
 var io = socket_io.listen(server);
 io.sockets.on('connection', function(socket) {

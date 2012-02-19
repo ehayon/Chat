@@ -6,7 +6,7 @@
 		<script src="/socket.io/socket.io.js"></script>
 		<script>
 		$(document).ready(function() {
-			var socket = io.connect('http://localhost:8000');
+			var socket = io.connect('http://localhost');
 			$('#ack').hide();
 			$('#new_message').submit(function(e) {
 				e.preventDefault();
