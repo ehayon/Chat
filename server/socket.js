@@ -4,6 +4,7 @@ var socket_io = require('socket.io'),
 	fs = require('fs'),
 	html_data;
 // create a redis client for both pub and sub
+var create_client = redis.createClient();
 var pub_client = redis.createClient();
 var sub_client = redis.createClient();
 var clients = [];
@@ -27,12 +28,11 @@ var io = socket_io.listen(server);
 io.sockets.on('connection', function(socket) {
 	clients.push(socket);
 	console.log("Client connected");
-	sub_client.subscribe('room-1');
-	pub_client.publish('room-1', socket.id + " has joined the room!");
-	
+	sub_client.subscribe('room-1');	
 	socket.on('message', function(data, fn) {
 		fn("\"" + data + "\"" + " received");
-		pub_client.publish('room-1', data);
+		new_message(socket, data);
+	
 	});
 });
 
@@ -42,9 +42,26 @@ pub_client.on('error', function(err) {
 sub_client.on('error', function(err) {
 	console.log("Error: " + err);
 });
-sub_client.on('message', function(channel, message) {
+sub_client.on('message', function(channel, key) {
+	create_client.hgetall(key, function(err, obj) {
+		if(err) msg = "Error!"
+		var msg = obj.user_id + ": " + obj.msg;
+		broadcast(clients, msg);				
+	});
+		// send the message through every socket
+	
+});
+function new_message(sock, message) {
+	create_client.incr('messages', function(obj, id) {
+		create_client.hmset('message:'+id, {user_id: sock.id, msg: message}, function(obj, res) {
+			pub_client.publish('room-1', 'message:'+id);
+		});
+	});
+}
+function broadcast(clients, message) {
 	for(var i = 0; i < clients.length; i++) {
 		// send the message through every socket
-		clients[i].emit('new_message', message);
+		clients[i].emit('new_message', message);					
 	}
-});
+	
+}
