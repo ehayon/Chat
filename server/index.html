@@ -7,22 +7,20 @@
 		<script>
 		$(document).ready(function() {
 			var socket = io.connect('http://localhost:8000');
-			socket.on('news', function (data) {
-				console.log(data);
-				socket.emit('my other event', { my: 'data' });
-			});
 			$('#ack').hide();
 			$('#new_message').submit(function(e) {
 				e.preventDefault();
-				socket.emit('message', 'test-message', function(data) {
-					$('#ack').effect('highlight');
+				socket.emit('message', $('#message_textbox').val(), function(data) {
+					$('#ack').text(data).effect('highlight');
 					setTimeout(function() {
 						$('#ack').fadeOut();
 					}, 2000);
 				});
 			});
 				
-			
+			socket.on('new_message', function(message) {
+				$('#messages').append("\<p\>" + message + "\<p\>");
+			});
 		});
 		</script>
 	</head>
