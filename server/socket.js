@@ -5,13 +5,12 @@ var socket_io = require('socket.io'),
 	html_data;
 var clients = [];
 
-
+redis = redis.createClient(broadcast, clients)
 function broadcast(clients, message) {
 	for(var i = 0; i < clients.length; i++) 
 		clients[i].emit('new_message', message);						
 }
 // set up the redis client (first parameter is a callback for whenever there is a new message available)
-redis.createClient(broadcast, clients)
 
 // read in the html data to serve å
 fs.readFile('index.html', function(err, data) {
@@ -42,9 +41,13 @@ io.sockets.on('connection', function(socket) {
 	socket.on('message', function(data, fn) {
 		fn("\"" + data + "\"" + " received");
 		redis.new_message(socket, data);
-	
 	});
+	io.sockets.on('disconnect', function() {
+		io.sockets.emit('user left')
+	});
+
 });
+
 
 
 
